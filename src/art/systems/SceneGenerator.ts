@@ -25,6 +25,7 @@ const sceneTitles: Record<VisualMode, readonly string[]> = {
   'plasma-field': ['Mist Lattice', 'Velvet Weather', 'Soft Current'],
   'particle-field': ['Tracer Garden', 'Flux Lanterns', 'Drift Chorus'],
   'kaleidoscopic-symmetry': ['Mirror Hymn', 'Prism Cloister', 'Symmetry Lantern'],
+  'lyrical-drift': ['Words Remain', 'Slow Dissolve', 'Evening Chord', 'Quiet Vigil', 'Tender Equation', 'Lyric Undone'],
 };
 
 export class SceneGenerator {
@@ -244,6 +245,26 @@ export class SceneGenerator {
           secondary: [this.random.range(-0.32, 0.32), this.random.range(-0.32, 0.32)],
           drift: [this.random.range(-0.03, 0.03), this.random.range(-0.03, 0.03)],
           rotation: this.random.range(-0.35, 0.35),
+        };
+
+      case 'lyrical-drift':
+        return {
+          ...scene,
+          iterationDepth: this.random.range(44, 88),
+          symmetryLevel: this.random.range(3, 5),
+          scale: this.random.range(0.7, 1.7),
+          focus: [this.random.range(-0.35, 0.35), this.random.range(-0.35, 0.35)],
+          secondary: [0, 0],
+          drift: [this.random.range(-0.018, 0.018), this.random.range(-0.018, 0.018)],
+          motion: [
+            this.random.range(0.22, 0.52),
+            this.random.range(0.22, 0.52),
+            this.random.range(0.18, 0.42),
+          ],
+          rotation: this.random.range(-0.55, 0.55),
+          zoomRate: this.random.range(0.003, 0.011),
+          holdDuration: this.random.range(100, 180),
+          formula: this.random.range(0, 3),
         };
     }
   }

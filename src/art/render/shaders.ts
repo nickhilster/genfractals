@@ -87,6 +87,15 @@ export const fractalFragmentShader = `
     return vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
   }
 
+  vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+  }
+
+  vec2 complexDiv(vec2 a, vec2 b) {
+    float denom = max(dot(b, b), 1e-6);
+    return vec2(dot(a, b), a.y * b.x - a.x * b.y) / denom;
+  }
+
   vec2 kaleido(vec2 point, float segments) {
     float angle = atan(point.y, point.x);
     float radius = length(point);
@@ -158,6 +167,10 @@ export const fractalFragmentShader = `
 
     if (u_mode == 4) {
       return 0.45;
+    }
+
+    if (u_mode == 6) {
+      return 0.18;
     }
 
     return 0.65;
@@ -419,6 +432,99 @@ export const fractalFragmentShader = `
     return color;
   }
 
+  vec3 renderLyricalDrift(vec2 uv) {
+    float motion = motionFactor() * 0.3;
+    int maxIter = int(clamp(u_detail, 36.0, 90.0));
+
+    vec2 center = u_focus * 0.28 + 0.05 * vec2(
+      sin(u_sceneTime * 0.018 * motion + u_seed * 5.1),
+      cos(u_sceneTime * 0.015 * motion + u_seed * 3.4)
+    );
+    vec2 point = rotate2d(u_rotation * 0.22 + u_sceneTime * 0.005 * motion)
+                 * (uv * (0.9 + u_scale * 0.28) + center);
+
+    vec2 z = point;
+    int basin = -1;
+    float iters = 0.0;
+
+    if (u_formula < 1.5) {
+      // Newton fractal: z^3 - 1  →  step z = (2z^3 + 1) / (3z^2)
+      // Three roots at (1,0), (-0.5, ±√3/2) give triangular stained-glass basins.
+      vec2 r0 = vec2(1.0, 0.0);
+      vec2 r1 = vec2(-0.5,  0.86603);
+      vec2 r2 = vec2(-0.5, -0.86603);
+
+      for (int i = 0; i < 90; i++) {
+        if (i >= maxIter) break;
+        vec2 z2  = complexSquare(z);
+        vec2 z3  = complexMul(z2, z);
+        z = complexDiv(vec2(2.0 * z3.x + 1.0, 2.0 * z3.y), 3.0 * z2);
+
+        float d0 = length(z - r0);
+        float d1 = length(z - r1);
+        float d2 = length(z - r2);
+
+        if (min(d0, min(d1, d2)) < 0.0006) {
+          iters = float(i);
+          if      (d0 <= d1 && d0 <= d2) basin = 0;
+          else if (d1 <= d2)             basin = 1;
+          else                           basin = 2;
+          break;
+        }
+      }
+    } else {
+      // Newton fractal: z^4 - 1  →  step z = (3z^4 + 1) / (4z^3)
+      // Four roots at (±1,0), (0,±1) give cross-symmetric basins.
+      vec2 r0 = vec2( 1.0, 0.0);
+      vec2 r1 = vec2(-1.0, 0.0);
+      vec2 r2 = vec2( 0.0, 1.0);
+      vec2 r3 = vec2( 0.0,-1.0);
+
+      for (int i = 0; i < 90; i++) {
+        if (i >= maxIter) break;
+        vec2 z2 = complexSquare(z);
+        vec2 z3 = complexMul(z2, z);
+        vec2 z4 = complexSquare(z2);
+        z = complexDiv(vec2(3.0 * z4.x + 1.0, 3.0 * z4.y), 4.0 * z3);
+
+        float d0 = length(z - r0);
+        float d1 = length(z - r1);
+        float d2 = length(z - r2);
+        float d3 = length(z - r3);
+
+        if (min(d0, min(d1, min(d2, d3))) < 0.0006) {
+          iters = float(i);
+          if      (d0 <= d1 && d0 <= d2 && d0 <= d3) basin = 0;
+          else if (d1 <= d2 && d1 <= d3)              basin = 1;
+          else if (d2 <= d3)                           basin = 2;
+          else                                         basin = 3;
+          break;
+        }
+      }
+    }
+
+    if (basin < 0) {
+      return ambientBase(uv * 0.5);
+    }
+
+    float speed       = 1.0 - iters / float(maxIter);
+    float basinStep   = u_formula < 1.5 ? 0.333 : 0.25;
+    float basinOffset = float(basin) * basinStep;
+    float texture     = 0.055 * fbm(point * 2.2 + u_seed * 9.7 + u_sceneTime * 0.006 * motion);
+
+    float t = fract(basinOffset + speed * 0.32 + texture);
+    vec3 color = samplePalette(t);
+
+    // Slow-convergence areas (fractal edges) glow warmly.
+    float boundaryGlow = pow(1.0 - speed, 2.2);
+    color += u_palette3 * boundaryGlow * 0.9;
+    color += u_palette2 * boundaryGlow * 0.35;
+
+    color = mix(ambientBase(uv * 0.45), color, 0.82 + 0.14 * speed);
+
+    return color;
+  }
+
   float vignette(vec2 uv) {
     vec2 stretched = uv * vec2(0.92, 0.86);
     return smoothstep(1.55, 0.24, length(stretched));
@@ -441,8 +547,10 @@ export const fractalFragmentShader = `
       color = renderPlasma(uv);
     } else if (u_mode == 4) {
       color = renderParticleField(uv);
-    } else {
+    } else if (u_mode == 5) {
       color = renderKaleidoscope(uv);
+    } else {
+      color = renderLyricalDrift(uv);
     }
 
     color *= vignette(uv);
