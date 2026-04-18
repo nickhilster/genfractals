@@ -5,6 +5,7 @@ export const VISUAL_MODES = [
   'plasma-field',
   'particle-field',
   'kaleidoscopic-symmetry',
+  'lyrical-drift',
 ] as const;
 
 export type VisualMode = (typeof VISUAL_MODES)[number];
@@ -87,6 +88,7 @@ export const MODE_LABELS: Record<VisualMode, string> = {
   'plasma-field': 'Plasma Fractal Field',
   'particle-field': 'Particle Fractal Field',
   'kaleidoscopic-symmetry': 'Kaleidoscopic Fractal Symmetry',
+  'lyrical-drift': 'Lyrical Drift',
 };
 
 export const PALETTE_TEMPERATURE_LABELS: Record<PaletteTemperaturePreference, string> = {
@@ -104,4 +106,5 @@ export const MODE_EMPHASIS_LABELS: Record<ModeEmphasis, string> = {
   'plasma-field': 'Plasma',
   'particle-field': 'Particle',
   'kaleidoscopic-symmetry': 'Symmetry',
+  'lyrical-drift': 'Lyrical',
 };

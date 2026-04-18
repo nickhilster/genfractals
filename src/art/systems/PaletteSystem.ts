@@ -73,6 +73,30 @@ const paletteLibrary: Palette[] = [
     accent: hexToVec3('#8cd0b5'),
     glow: hexToVec3('#f0ebce'),
   },
+  {
+    name: 'Words',
+    temperature: 'warm',
+    background: hexToVec3('#110810'),
+    shadow: hexToVec3('#4a2245'),
+    accent: hexToVec3('#c98fa8'),
+    glow: hexToVec3('#f5e0d0'),
+  },
+  {
+    name: 'Truly Madly',
+    temperature: 'warm',
+    background: hexToVec3('#0e0b16'),
+    shadow: hexToVec3('#3d2563'),
+    accent: hexToVec3('#9b72cf'),
+    glow: hexToVec3('#f0d8f5'),
+  },
+  {
+    name: 'Heal the World',
+    temperature: 'warm',
+    background: hexToVec3('#120e06'),
+    shadow: hexToVec3('#5c4420'),
+    accent: hexToVec3('#d4a054'),
+    glow: hexToVec3('#f8edcc'),
+  },
 ];
 
 const modePalettePreferences: Record<VisualMode, readonly string[]> = {
@@ -82,6 +106,7 @@ const modePalettePreferences: Record<VisualMode, readonly string[]> = {
   'plasma-field': ['Sea Clay', 'Verdigris Haze', 'Tidal Glass'],
   'particle-field': ['Celadon Night', 'Sea Clay', 'Saffron Mist'],
   'kaleidoscopic-symmetry': ['Rose Ash', 'Amber Quiet', 'Mineral Dusk'],
+  'lyrical-drift': ['Words', 'Truly Madly', 'Heal the World'],
 };
 
 export class PaletteSystem {
